@@ -1,0 +1,14 @@
+{
+    "name": "Evbishop.Runtime.Singletons",
+    "rootNamespace": "Evbishop.Runtime.Singletons",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
