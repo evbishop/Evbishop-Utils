@@ -1,10 +1,10 @@
+using System;
 using UnityEngine;
 
 namespace Evbishop.Runtime.ModulesSystem
 {
-    [System.Serializable]
-    public abstract class ModulesSystem<T>
-        where T : ModuleBase
+    [Serializable]
+    public abstract class ModulesSystem<T> where T : ModuleBase
     {
         [SerializeReference] private T[] _modules;
 
@@ -21,13 +21,16 @@ namespace Evbishop.Runtime.ModulesSystem
         /// <returns></returns>
         public bool TryGetModule<U>(out U module) where U : T
         {
-            module = default(U);
+            module = default;
 
-            if (_modules == null || _modules.Length == 0) return false;
+            if (_modules == null || _modules.Length == 0)
+                return false;
+
+            Type type = typeof(U);
 
             for (int i = 0; i < _modules.Length; i++)
             {
-                if (_modules[i].GetType() == typeof(U))
+                if (_modules[i].GetType() == type)
                 {
                     module = (U)_modules[i];
                     break;
@@ -42,20 +45,36 @@ namespace Evbishop.Runtime.ModulesSystem
             if (_modules == null || _modules.Length == 0)
                 return false;
 
+            Type type = typeof(U);
+
             for (int i = 0; i < _modules.Length; i++)
-                if (_modules[i].GetType() == typeof(U))
+                if (_modules[i].GetType() == type)
                     return true;
 
             return false;
         }
 
-        public bool HasModule(System.Type type)
+        public bool HasModule(Type type)
         {
             if (_modules == null || _modules.Length == 0)
                 return false;
 
             for (int i = 0; i < _modules.Length; i++)
                 if (_modules[i].GetType() == type)
+                    return true;
+
+            return false;
+        }
+
+        public bool HasInterface<I>() where I : IModule
+        {
+            if (_modules == null || _modules.Length == 0)
+                return false;
+
+            string interfaceName = typeof(I).ToString();
+
+            for (int i = 0; i < _modules.Length; i++)
+                if (_modules[i].GetType().GetInterface(interfaceName) != null)
                     return true;
 
             return false;
