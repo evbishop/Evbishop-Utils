@@ -1,6 +1,9 @@
+using System;
+
 namespace Evbishop.Runtime.ModulesSystem
 {
-    public abstract class ModuleBase
+    [Serializable]
+    public abstract class ModuleBase : IModule
     {
 
     }

@@ -1,0 +1,17 @@
+{
+    "name": "Evbishop.Runtime.UI",
+    "rootNamespace": "Evbishop.Runtime.UI",
+    "references": [
+        "GUID:db581a1f5d1946a4aa83865c69700b2d",
+        "GUID:396257723a08def4c852a9ce37d5d5f0"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

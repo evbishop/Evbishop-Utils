@@ -1,0 +1,19 @@
+{
+    "name": "Evbishop.Editor.UI",
+    "rootNamespace": "Evbishop.Editor.UI",
+    "references": [
+        "GUID:db581a1f5d1946a4aa83865c69700b2d",
+        "GUID:708fc9e950846e044b811f44cdc61854"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

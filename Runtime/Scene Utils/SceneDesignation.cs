@@ -4,13 +4,10 @@ namespace Evbishop.Runtime.SceneUtils
     {
         None = 0,
 
-        Intro = 1,
-        Bootstrap = 2,
-        MainMenu = 3,
-
-        Tavern = 4,
-        Adventure = 5,
-        Lobby = 6,
-        Inventory = 7,
+        Bootstrap = 1,
+        Game = 2,
+        BootstrapClientUI = 3,
+        Menu = 4,
+        MenuBackground = 5,
     }
 }
