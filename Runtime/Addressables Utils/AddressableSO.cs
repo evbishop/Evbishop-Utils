@@ -29,7 +29,7 @@ namespace Evbishop.Runtime.AddressablesUtils
             // instances will not have a valid guid and will become 0's in the editor
             if (Application.isPlaying) return;
 
-            UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier(GetInstanceID(), out _guid, out _fileId);
+            UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier(GetEntityId(), out _guid, out _fileId);
         }
 #endif
     }

@@ -1,31 +1,20 @@
-using UnityEditor;
+using UnityEditor.Toolbars;
 using UnityEngine;
 
 namespace Evbishop.Editor
 {
-    [InitializeOnLoad]
     public static class ClearPrefsButton
     {
-        static ClearPrefsButton()
+        [MainToolbarElement("Evbishop/Clear Saves", defaultDockPosition = MainToolbarDockPosition.Right)]
+        public static MainToolbarElement ButtonClearSaves()
         {
-            ToolbarExtender.RightToolbarGUI.Add(OnToolbarGUI);
+            var content = new MainToolbarContent("C");
+            return new MainToolbarButton(content, ClearSaves);
         }
 
-        private static void OnToolbarGUI()
+        private static void ClearSaves()
         {
-            GUILayout.FlexibleSpace();
-
-            OnClearPlayerPrefsButtonClick();
-        }
-
-        private static void OnClearPlayerPrefsButtonClick()
-        {
-            var testLevelContent = new GUIContent("C", "Clear All Player Datas");
-
-            if (GUILayout.Button(testLevelContent, ToolbarStyles.CommandButtonStyle))
-            {
-                PlayerPrefs.DeleteAll();
-            }
+            PlayerPrefs.DeleteAll();
         }
     }
 }

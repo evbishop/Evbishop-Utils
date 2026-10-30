@@ -20,7 +20,7 @@ namespace Evbishop.Runtime.UI
             var scaledWidth = targetRect.width * targetLocalScale.x;
             var scaledHeight = targetRect.height * targetLocalScale.y;
 
-            // Calculate anchor-based offsets once
+            // Calculate anchor-based offsets once (for parent-relative positioning)
             var minAnchorOffsetX = parentRect.width * (1f - targetPivot.x) * target.anchorMin.x;
             var maxAnchorOffsetX = parentRect.width * targetPivot.x * target.anchorMax.x;
             var minAnchorOffsetY = parentRect.height * (1f - targetPivot.y) * target.anchorMin.y;
@@ -68,20 +68,50 @@ namespace Evbishop.Runtime.UI
             float minAnchorOffsetY,
             float maxAnchorOffsetY)
         {
-            // Calculate base offsets
-            float xOffset = CalculateHorizontalOffset(moveDirection, parentRect.width, scaledWidth, targetPivot, minAnchorOffsetX, maxAnchorOffsetX);
-            float yOffset = CalculateVerticalOffset(moveDirection, parentRect.height, scaledHeight, targetPivot, minAnchorOffsetY, maxAnchorOffsetY);
-
             var x = startPosition.x;
             var y = startPosition.y;
             var z = startPosition.z;
 
+            // For cardinal directions (Left, Right, Top, Bottom): 
+            // - Keep the object's Y/X position (preserve vertical/horizontal alignment)
+            // - Move it outside the parent bounds in the specified direction
+            // - Account for the object's size so it's completely outside the visible area
+            switch (moveDirection)
+            {
+                case EDirection.Left:
+                    // Move left outside parent bounds while keeping the same Y position
+                    // We move by parentRect.width (to get outside) + half the object width (to fully hide it)
+                    return (new Vector3(-parentRect.width - (scaledWidth / 2), y, z), -1, 0);
+                case EDirection.Right:
+                    // Move right outside parent bounds while keeping the same Y position
+                    return (new Vector3(parentRect.width + (scaledWidth / 2), y, z), 1, 0);
+                case EDirection.Top:
+                    // Move up outside parent bounds while keeping the same X position
+                    return (new Vector3(x, parentRect.height + (scaledHeight / 2), z), 0, 1);
+                case EDirection.Bottom:
+                    // Move down outside parent bounds while keeping the same X position
+                    return (new Vector3(x, -parentRect.height - (scaledHeight / 2), z), 0, -1);
+            }
+
+            // For compound directions, calculate parent-relative positioning
+            float xOffset = CalculateHorizontalOffset(
+                moveDirection,
+                parentRect.width,
+                scaledWidth,
+                targetPivot,
+                minAnchorOffsetX,
+                maxAnchorOffsetX);
+
+            float yOffset = CalculateVerticalOffset(
+                moveDirection,
+                parentRect.height,
+                scaledHeight,
+                targetPivot,
+                minAnchorOffsetY,
+                maxAnchorOffsetY);
+
             return moveDirection switch
             {
-                EDirection.Left => (new Vector3(-xOffset, y, z), -1, 0),
-                EDirection.Right => (new Vector3(xOffset, y, z), 1, 0),
-                EDirection.Top => (new Vector3(x, yOffset, z), 0, 1),
-                EDirection.Bottom => (new Vector3(x, -yOffset, z), 0, -1),
                 EDirection.TopLeft => (new Vector3(-xOffset, yOffset, z), -1, 1),
                 EDirection.TopCenter => (new Vector3(0, yOffset, z), 0, 1),
                 EDirection.TopRight => (new Vector3(xOffset, yOffset, z), 1, 1),
@@ -105,13 +135,11 @@ namespace Evbishop.Runtime.UI
         {
             switch (direction)
             {
-                case EDirection.Left:
                 case EDirection.TopLeft:
                 case EDirection.MiddleLeft:
                 case EDirection.BottomLeft:
                     return (scaledWidth * (1f - targetPivot.x)) + minAnchorOffset + maxAnchorOffset;
 
-                case EDirection.Right:
                 case EDirection.TopRight:
                 case EDirection.MiddleRight:
                 case EDirection.BottomRight:
@@ -132,13 +160,11 @@ namespace Evbishop.Runtime.UI
         {
             switch (direction)
             {
-                case EDirection.Top:
                 case EDirection.TopLeft:
                 case EDirection.TopCenter:
                 case EDirection.TopRight:
                     return parentHeight + (scaledHeight * targetPivot.y) - minAnchorOffset - maxAnchorOffset;
 
-                case EDirection.Bottom:
                 case EDirection.BottomLeft:
                 case EDirection.BottomCenter:
                 case EDirection.BottomRight:

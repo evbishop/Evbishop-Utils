@@ -14,8 +14,11 @@ namespace Evbishop.Runtime.UI.Modules.Animator
         [SerializeField, HorizontalGroup(GROUP_FROM_TO), VerticalGroup(GROUP_FROM)] protected EStart playFrom = EStart.CustomValue;
         [SerializeField, VerticalGroup(GROUP_TO)] protected EStart playTo;
 
-        public UnityEvent<AnimatorModule> OnPlayFinished { get; set; }
-        public UnityEvent<AnimatorModule> OnPlayReverseFinished { get; set; }
+        private bool _notify = true;
+        public bool Notify => _notify;
+
+        public UnityEvent<AnimatorModule> OnPlayFinished { get; set; } = new();
+        public UnityEvent<AnimatorModule> OnPlayReverseFinished { get; set; } = new();
 
         public virtual void HandleAwake()
         {
@@ -23,16 +26,16 @@ namespace Evbishop.Runtime.UI.Modules.Animator
             OnPlayReverseFinished = new();
         }
 
-        [Button, ButtonGroup, GUIColor("cyan")]
-        public virtual void Play()
+        [Button, ButtonGroup, GUIColor("cyan"), ShowIf("@UnityEngine.Application.isPlaying")]
+        public virtual void Play(bool notify = true)
         {
-
+            _notify = notify;
         }
 
-        [Button, ButtonGroup, GUIColor(1f, 0.7f, 0.7f)]
-        public virtual void PlayReverse()
+        [Button, ButtonGroup, GUIColor(1f, 0.7f, 0.7f), ShowIf("@UnityEngine.Application.isPlaying")]
+        public virtual void PlayReverse(bool notify = true)
         {
-
+            _notify = notify;
         }
 
         public virtual void Cancel()
@@ -40,9 +43,9 @@ namespace Evbishop.Runtime.UI.Modules.Animator
 
         }
 
-        public virtual void ReverseInstant()
+        public virtual void ReverseInstant(bool notify = true)
         {
-
+            _notify = notify;
         }
     }
 }
