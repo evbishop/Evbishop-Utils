@@ -41,9 +41,9 @@ namespace Evbishop.Runtime.UI.Modules.DOTween_Animation
             }
         }
 
-        public override void Play()
+        public override void Play(bool notify = true)
         {
-            base.Play();
+            base.Play(notify);
 
             if (playFrom != EStart.CurrentValue)
                 Component.localScale = _from;
@@ -52,18 +52,18 @@ namespace Evbishop.Runtime.UI.Modules.DOTween_Animation
                 .OnComplete(HandleTweenComplete);
         }
 
-        public override void PlayReverse()
+        public override void PlayReverse(bool notify = true)
         {
-            base.PlayReverse();
+            base.PlayReverse(notify);
 
             sequence
                 .Append(Component.DOScale(_from, duration).SetEase(easeReversePlay))
                 .OnComplete(HandleTweenRewind);
         }
 
-        public override void ReverseInstant()
+        public override void ReverseInstant(bool notify = true)
         {
-            base.ReverseInstant();
+            base.ReverseInstant(notify);
 
             Component.localScale = _from;
         }

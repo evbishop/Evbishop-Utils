@@ -16,7 +16,6 @@ namespace Evbishop.Runtime.UI.Modules.DOTween_Animation
         [SerializeField] protected float duration = 1;
         [SerializeField] protected Ease easePlay = Ease.OutQuad;
         [SerializeField] protected Ease easeReversePlay = Ease.InQuad;
-        [SerializeField, Sirenix.OdinInspector.EnumToggleButtons] protected EPlayMode playMode;
 
         protected Sequence sequence;
 
@@ -32,22 +31,18 @@ namespace Evbishop.Runtime.UI.Modules.DOTween_Animation
             sequence = DOTween
                 .Sequence()
                 .SetAutoKill(true);
-            if (playMode == EPlayMode.PingPong)
-            {
-                sequence.SetLoops(1, LoopType.Yoyo);
-            }
         }
 
-        public override void Play()
+        public override void Play(bool notify = true)
         {
-            base.Play();
+            base.Play(notify);
 
             InitSequence();
         }
 
-        public override void PlayReverse()
+        public override void PlayReverse(bool notify = true)
         {
-            base.PlayReverse();
+            base.PlayReverse(notify);
 
             InitSequence();
         }

@@ -10,5 +10,8 @@ namespace Evbishop.Runtime.SceneUtils
         Menu = 4,
         MenuBackground = 5,
         Test = 6,
+        CharacterCreation = 7,
+        Settings = 8,
+        GameplayUI = 9,
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Evbishop.Runtime.ModulesSystem;
 using Evbishop.Runtime.UI.Modules;
 using Evbishop.Runtime.UI.Modules.Animator;
@@ -15,17 +16,21 @@ namespace Evbishop.Runtime.UI
     {
         private const string SELECTION = "Selection";
         private const string SELECTION_HORIZONTAL = "Selection/Horizontal";
+        private const string ON_START = "On Start";
+        private const string ON_START_HORIZONTAL = "On Start/Horizontal";
         private const string ON_HIDE = "On Hide";
         private const string ON_HIDE_HORIZONTAL = "On Hide/Horizontal";
 
         [field: SerializeField, ReadOnly] public EVisibility Visibility { get; private set; }
 
-        [SerializeField] private EStartBehaviour _startBehaviour;
-        [SerializeField, BoxGroup(ON_HIDE), HorizontalGroup(ON_HIDE_HORIZONTAL, Width = 200), LabelText("Disable game object on hide"), LabelWidth(160)] private bool _isDisablingGameObjectOnHide;
+        [SerializeField, BoxGroup(ON_START), HorizontalGroup(ON_START_HORIZONTAL, Width = 200), HideLabel] private EStartBehaviour _startBehaviour = EStartBehaviour.None;
+        [SerializeField, HorizontalGroup(ON_START_HORIZONTAL)] private bool _notify = false;
+
+        [SerializeField, BoxGroup(ON_HIDE), HorizontalGroup(ON_HIDE_HORIZONTAL, Width = 200), LabelText("Disable game object on hide"), LabelWidth(160)] private bool _isDisablingGameObjectOnHide = true;
         [SerializeField, HorizontalGroup(ON_HIDE_HORIZONTAL), LabelText("Disable canvas on hide"), LabelWidth(160)] private bool _isDisablingCanvasOnHide = true;
 
-        [SerializeField, BoxGroup(SELECTION), HorizontalGroup(SELECTION_HORIZONTAL, Width = 200), LabelText("Clear selected on show"), LabelWidth(160)] private bool _isClearingSelectedOnShow;
-        [SerializeField, HorizontalGroup(SELECTION_HORIZONTAL), LabelText("Clear selected on hide"), LabelWidth(160)] private bool _isClearingSelectedOnHide;
+        [SerializeField, BoxGroup(SELECTION), HorizontalGroup(SELECTION_HORIZONTAL, Width = 200), LabelText("Clear selected on show"), LabelWidth(160)] private bool _isClearingSelectedOnShow = false;
+        [SerializeField, HorizontalGroup(SELECTION_HORIZONTAL), LabelText("Clear selected on hide"), LabelWidth(160)] private bool _isClearingSelectedOnHide = false;
 
         [SerializeField, FoldoutGroup(CALLBACKS)] public UnityEvent OnShow;
         [SerializeField, FoldoutGroup(CALLBACKS)] public UnityEvent OnShown;
@@ -41,6 +46,8 @@ namespace Evbishop.Runtime.UI
         public bool IsVisible => Visibility == EVisibility.Showing || Visibility == EVisibility.Shown;
         public bool HasAnimations => Modules.HasInterface<IModuleAnimator>();
 
+        protected UnityEvent _eventCleanup = new();
+
         protected override void Awake()
         {
             base.Awake();
@@ -54,6 +61,7 @@ namespace Evbishop.Runtime.UI
             {
                 module.HandleAwake(this);
             }
+            OnHide.AddListener(HandleHide);
         }
 
         protected override void Start()
@@ -64,17 +72,20 @@ namespace Evbishop.Runtime.UI
                 moduleStartPosition.SetPosition(transform);
             switch (_startBehaviour)
             {
+                case EStartBehaviour.None:
+                    Visibility = EVisibility.Shown;
+                    break;
                 case EStartBehaviour.InstantHide:
-                    Hide(true);
+                    Hide(true, _notify);
                     break;
                 case EStartBehaviour.InstantShow:
-                    Show(true);
+                    Show(true, _notify);
                     break;
                 case EStartBehaviour.Hide:
-                    Hide();
+                    Hide(false, _notify);
                     break;
                 case EStartBehaviour.Show:
-                    Show();
+                    Show(false, _notify);
                     break;
             }
         }
@@ -87,26 +98,38 @@ namespace Evbishop.Runtime.UI
             {
                 module.Dispose();
             }
+            OnHide.RemoveListener(HandleHide);
         }
 
-        [Button, ButtonGroup, GUIColor("cyan")]
+        protected virtual void HandleHide()
+        {
+            _eventCleanup?.Invoke();
+            _eventCleanup.RemoveAllListeners();
+        }
+
+        [Button, ButtonGroup, GUIColor("cyan"), ShowIf("@UnityEngine.Application.isPlaying")]
         public void Show(bool instant = false)
+        {
+            Show(instant, true);
+        }
+
+        public void Show(bool instant, bool notify)
         {
             if (_isClearingSelectedOnShow)
                 EventSystem.current.SetSelectedGameObject(null);
 
-            //if (!instant && (Visibility == EVisibility.Showing || Visibility == EVisibility.Shown))
-            //{
-            //    Hide(true);
-            //}
-
             _workingAnimators = 0;
             Visibility = EVisibility.Showing;
-            OnShow?.Invoke();
+            if (notify)
+                OnShow?.Invoke();
 
             gameObject.SetActive(true);
             if (_isDisablingCanvasOnHide)
+            {
+                if (Canvas == null)
+                    Canvas = GetComponent<Canvas>();
                 Canvas.enabled = true;
+            }
             if (Modules.TryGetModule(out ContainerModuleGraphicRaycaster grModule) &&
                 grModule.IsDisablingGraphicRaycasterOnHide)
                 grModule.Component.enabled = true;
@@ -114,7 +137,8 @@ namespace Evbishop.Runtime.UI
             if (instant)
             {
                 Visibility = EVisibility.Shown;
-                OnShown?.Invoke();
+                if (notify)
+                    OnShown?.Invoke();
             }
             else
             {
@@ -123,38 +147,48 @@ namespace Evbishop.Runtime.UI
                     foreach (var animator in Modules.GetModulesWithInterface<IModuleAnimator>())
                     {
                         _workingAnimators++;
+                        if (animator.OnPlayFinished == null)
+                        {
+                            animator.OnPlayFinished = new();
+                        }
                         animator.OnPlayFinished.AddListener(HandleAnimatorShowFinished);
-                        animator.Play();
+                        animator.Play(notify);
                     }
                 }
                 else
                 {
                     Visibility = EVisibility.Shown;
-                    OnShown?.Invoke();
+                    if (notify)
+                        OnShown?.Invoke();
                 }
             }
         }
 
-        [Button, ButtonGroup, GUIColor(1f, 0.7f, 0.7f)]
+        [Button, ButtonGroup, GUIColor(1f, 0.7f, 0.7f), ShowIf("@UnityEngine.Application.isPlaying")]
         public void Hide(bool instant = false)
         {
-            //if (!instant && (Visibility == EVisibility.Hiding || Visibility == EVisibility.Hidden))
-            //    return;
+            Hide(instant, true);
+        }
 
+        public void Hide(bool instant, bool notify)
+        {
             if (_isClearingSelectedOnHide && EventSystem.current)
                 EventSystem.current.SetSelectedGameObject(null);
 
             _workingAnimators = 0;
             Visibility = EVisibility.Hiding;
-            OnHide?.Invoke();
+            if (notify)
+                OnHide?.Invoke();
 
             if (instant)
             {
-                InstantHide();
+                InstantHide(notify);
                 if (Modules.HasInterface<IModuleAnimator>())
                 {
                     foreach (var animator in Modules.GetModulesWithInterface<IModuleAnimator>())
-                        animator.ReverseInstant();
+                    {
+                        animator.ReverseInstant(notify);
+                    }
                 }
             }
             else
@@ -164,21 +198,29 @@ namespace Evbishop.Runtime.UI
                     foreach (var animator in Modules.GetModulesWithInterface<IModuleAnimator>())
                     {
                         _workingAnimators++;
+                        if (animator.OnPlayReverseFinished == null)
+                        {
+                            animator.OnPlayReverseFinished = new();
+                        }
                         animator.OnPlayReverseFinished.AddListener(HandleAnimatorHideFinished);
-                        animator.PlayReverse();
+                        animator.PlayReverse(notify);
                     }
                 }
                 else
                 {
-                    InstantHide();
+                    InstantHide(notify);
                 }
             }
         }
 
-        private void InstantHide()
+        private void InstantHide(bool notify = true)
         {
             if (_isDisablingCanvasOnHide)
+            {
+                if (Canvas == null)
+                    Canvas = GetComponent<Canvas>();
                 Canvas.enabled = false;
+            }
             if (_isDisablingGameObjectOnHide)
                 gameObject.SetActive(false);
             if (Modules.TryGetModule(out ContainerModuleGraphicRaycaster grModule) &&
@@ -186,7 +228,8 @@ namespace Evbishop.Runtime.UI
                 grModule.Component.enabled = false;
 
             Visibility = EVisibility.Hidden;
-            OnHidden?.Invoke();
+            if (notify)
+                OnHidden?.Invoke();
         }
 
         public void HandleAnimatorShowFinished(AnimatorModule module)
@@ -196,7 +239,8 @@ namespace Evbishop.Runtime.UI
             if (_workingAnimators < 1)
             {
                 Visibility = EVisibility.Shown;
-                OnShown?.Invoke();
+                if (module.Notify)
+                    OnShown?.Invoke();
             }
         }
 
@@ -206,8 +250,19 @@ namespace Evbishop.Runtime.UI
             _workingAnimators--;
             if (_workingAnimators < 1)
             {
-                InstantHide();
+                InstantHide(module.Notify);
             }
+        }
+
+        protected void AddToCleanup(UnityEvent eventToRemoveFrom, UnityAction actionToRemove)
+        {
+            _eventCleanup.AddListener(() => eventToRemoveFrom.RemoveListener(actionToRemove));
+        }
+
+        public void AddListenerUntilHidden(UnityEvent eventToAddTo, UnityAction actionToAdd)
+        {
+            eventToAddTo.AddListener(actionToAdd);
+            AddToCleanup(eventToAddTo, actionToAdd);
         }
     }
 }

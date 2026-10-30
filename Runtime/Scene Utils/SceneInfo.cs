@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace Evbishop.Runtime.SceneUtils
 {
@@ -8,5 +9,6 @@ namespace Evbishop.Runtime.SceneUtils
         [field: SerializeField] public bool IsKeptInBuildSettingsWhenBuilding { get; private set; }
         [field: SerializeField] public SceneDesignation SceneDesignation { get; private set; }
         [field: SerializeField] public SceneReference SceneReference { get; private set; }
+        [field: SerializeField] public AssetReference AddressableSceneReference { get; private set; }
     }
 }

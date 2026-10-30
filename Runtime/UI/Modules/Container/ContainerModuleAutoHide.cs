@@ -45,7 +45,7 @@ namespace Evbishop.Runtime.UI.Modules.Container
                 .SuppressCancellationThrow();
             if (isCancelled) return;
 
-            _container.Hide();
+            _container.Hide(false);
         }
 
         public void HandleHide()

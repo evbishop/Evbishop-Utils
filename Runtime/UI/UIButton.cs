@@ -108,8 +108,24 @@ namespace Evbishop.Runtime.UI
             }
         }
 
+        public void AddOnClickAction(UnityAction action)
+        {
+            if (_button == null)
+                _button = GetComponent<BetterButton>();
+            _button.onClick.AddListener(action);
+        }
+
+        public void RemoveOnClickAction(UnityAction action)
+        {
+            if (_button == null)
+                _button = GetComponent<BetterButton>();
+            _button.onClick.RemoveListener(action);
+        }
+
         public void AddStateHandler(ESelectableState selectableState, UnityAction action)
         {
+            if (_button == null)
+                _button = GetComponent<BetterButton>();
             var transition = _button.BetterTransitions.FirstOrDefault(t => t.Mode == Transitions.TransitionMode.CustomCallback);
             if (transition == null)
             {

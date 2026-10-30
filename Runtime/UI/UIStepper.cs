@@ -1,7 +1,7 @@
-﻿using Sirenix.OdinInspector;
-using System;
+﻿using System;
 using System.Collections;
 using System.Globalization;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -167,14 +167,12 @@ namespace Evbishop.Runtime.UI
         /// Coroutine called when the user is holding down the plus button.
         /// It's used to auto-repeat the increment action.
         /// </summary>
-        private Coroutine _autoIncrementCoroutine { get; set; }
+        private Coroutine _autoIncrementCoroutine;
         /// <summary>
         /// Coroutine called when the user is holding down the minus button.
         /// It's used to auto-repeat the decrement action.
         /// </summary>
-        private Coroutine _autoDecrementCoroutine { get; set; }
-        private bool _isAutoIncrementing;
-        private bool _isAutoDecrementing;
+        private Coroutine _autoDecrementCoroutine;
         private bool _isStepValueChanged;
 
         /// <summary>
@@ -257,22 +255,14 @@ namespace Evbishop.Runtime.UI
             {
                 ResetButton.RemoveStateHandler(ESelectableState.Pressed, HandleResetButtonClicked);
             }
-            _isAutoIncrementing = false;
             if (_autoIncrementCoroutine != null)
             {
                 StopCoroutine(_autoIncrementCoroutine);
             }
-            _isAutoDecrementing = false;
             if (_autoDecrementCoroutine != null)
             {
                 StopCoroutine(_autoDecrementCoroutine);
             }
-        }
-
-        private void LateUpdate()
-        {
-            if (_isAutoIncrementing) StopAutoIncrement();
-            if (_isAutoDecrementing) StopAutoDecrement();
         }
 
         protected void HandleMinusButtonClicked()
@@ -414,14 +404,12 @@ namespace Evbishop.Runtime.UI
 
         private void StopAutoIncrement()
         {
-            _isAutoIncrementing = false;
             if (_autoIncrementCoroutine == null) return;
             StopCoroutine(_autoIncrementCoroutine);
         }
 
         private IEnumerator AutoIncrementValue()
         {
-            _isAutoIncrementing = true;
             yield return new WaitForSecondsRealtime(WAIT_BEFORE_STARTING);
             float waitTime = AutoRepeatWaitTime;
             while (CanIncrementValue())
@@ -430,7 +418,6 @@ namespace Evbishop.Runtime.UI
                 yield return new WaitForSecondsRealtime(waitTime);
                 waitTime = Mathf.Clamp(waitTime * AutoRepeatWaitTimeReduction, AutoRepeatMinWaitTime, AutoRepeatWaitTime);
             }
-            _isAutoIncrementing = false;
             _autoIncrementCoroutine = null;
         }
 
@@ -449,14 +436,12 @@ namespace Evbishop.Runtime.UI
 
         private void StopAutoDecrement()
         {
-            _isAutoDecrementing = false;
             if (_autoDecrementCoroutine == null) return;
             StopCoroutine(_autoDecrementCoroutine);
         }
 
         private IEnumerator AutoDecrementValue()
         {
-            _isAutoDecrementing = true;
             yield return new WaitForSecondsRealtime(WAIT_BEFORE_STARTING);
             float waitTime = AutoRepeatWaitTime;
             while (CanDecrementValue())
@@ -465,7 +450,6 @@ namespace Evbishop.Runtime.UI
                 yield return new WaitForSecondsRealtime(waitTime);
                 waitTime = Mathf.Clamp(waitTime * AutoRepeatWaitTimeReduction, AutoRepeatMinWaitTime, AutoRepeatWaitTime);
             }
-            _isAutoDecrementing = false;
             _autoDecrementCoroutine = null;
         }
 
